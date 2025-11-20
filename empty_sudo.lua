@@ -71,14 +71,14 @@ local SavedRecordings = {}
 local CurrentRecordingIndex = 1
 
 -- OPTIMIZED FPS SETTINGS (Turunkan untuk performa lebih baik)
-local targetFPS = 60       -- DARI 240 → 60
+local targetFPS = 120  -- DARI 240 → 60
 local recordInterval = 1 / targetFPS
-local replayTargetFPS = 60 -- DARI 240 → 60
+local replayTargetFPS = 120  -- DARI 240 → 60
 local replayInterval = 1 / replayTargetFPS
 local useAdvancedInterpolation = true
-local useBezierCurve = false -- MATIKAN BEZIER
-local smoothnessLevel = 3    -- DARI 5 → 3
-local anticipationFactor = 0 -- MATIKAN ANTICIPATION
+local useBezierCurve = false  -- MATIKAN BEZIER
+local smoothnessLevel = 7  -- DARI 5 → 3
+local anticipationFactor = 0.15  -- MATIKAN ANTICIPATION
 
 -- Pause Variables
 local IsPaused = false
@@ -90,7 +90,7 @@ local IsLoopEnabled = false
 local LoopCount = 0
 local MaxLoops = -1
 local LoopTransitionEnabled = true
-local LoopTransitionFrames = 15 -- KURANGI DARI 20 → 15
+local LoopTransitionFrames = 15  -- KURANGI DARI 20 → 15
 local CurrentLoopIteration = 0
 
 -- Performance Variables
@@ -130,9 +130,9 @@ local PerformanceTab = Window:Tab({
     Icon = "zap"
 })
 
--- ==========================================
+
 -- MOVEMENT TAB
--- ==========================================
+
 
 local WalkSpeedSection = MovementTab:Section({
     Title = "WalkSpeed Control"
@@ -340,9 +340,9 @@ FeaturesSection:Button({
     end
 })
 
--- ==========================================
+
 -- RECORDER TAB
--- ==========================================
+
 
 local RecorderControlSection = RecorderTab:Section({
     Title = "Recording Controls (60 FPS Optimized)"
@@ -552,7 +552,7 @@ LoopSection:Toggle({
     Default = false,
     Callback = function(value)
         IsLoopEnabled = value
-
+        
         WindUI:Notify({
             Title = "Loop Mode",
             Content = value and "Loop enabled" or "Loop disabled",
@@ -569,7 +569,7 @@ LoopSection:Toggle({
     Default = true,
     Callback = function(value)
         LoopTransitionEnabled = value
-
+        
         WindUI:Notify({
             Title = "Smooth Transition",
             Content = value and "Enabled" or "Instant restart",
@@ -588,7 +588,7 @@ LoopSection:Input({
         local value = tonumber(text)
         if value and (value >= -1) then
             MaxLoops = value
-
+            
             local content = value == -1 and "Infinite loops" or value .. " loops"
             WindUI:Notify({
                 Title = "Max Loops Set",
@@ -616,7 +616,7 @@ LoopSection:Input({
         local value = tonumber(text)
         if value and value >= 10 and value <= 30 then
             LoopTransitionFrames = value
-
+            
             WindUI:Notify({
                 Title = "Transition Updated",
                 Content = value .. " frames",
@@ -650,7 +650,7 @@ LoopSection:Button({
             })
             return
         end
-
+        
         local status = string.format(
             "Loop Status:\n\nEnabled: %s\nIteration: %d\nMax: %s\nSmooth: %s\nFrames: %d",
             IsLoopEnabled and "Yes" or "No",
@@ -659,7 +659,7 @@ LoopSection:Button({
             LoopTransitionEnabled and "Yes" or "No",
             LoopTransitionFrames
         )
-
+        
         WindUI:Notify({
             Title = "Loop Info",
             Content = status,
@@ -675,7 +675,7 @@ LoopSection:Button({
     Icon = "rotate-ccw",
     Callback = function()
         CurrentLoopIteration = 0
-
+        
         WindUI:Notify({
             Title = "Counter Reset",
             Content = "Reset to 0",
@@ -760,15 +760,15 @@ local function UpdateMergeDropdown()
     for name, _ in pairs(SavedRecordings) do
         table.insert(options, name)
     end
-
+    
     if #options == 0 then
         options = { "No recordings yet" }
     end
-
+    
     if MergeDropdown then
         MergeDropdown:Refresh(options)
     end
-
+    
     return options
 end
 
@@ -781,7 +781,7 @@ MergeDropdown = MergeSection:Dropdown({
     Default = MergeDropdownOptions[1],
     Callback = function(option)
         if option == "No recordings yet" then return end
-
+        
         if SavedRecordings[option] then
             if not table.find(SelectedRecordingsForMerge, option) then
                 table.insert(SelectedRecordingsForMerge, option)
@@ -793,6 +793,22 @@ MergeDropdown = MergeSection:Dropdown({
                 })
             end
         end
+    end
+})
+
+MergeSection:Button({
+    Title = "Refresh Recording List",
+    Description = "Update dropdown with latest recordings",
+    Icon = "refresh-cw",
+    Callback = function()
+        local options = UpdateMergeDropdown()
+        
+        WindUI:Notify({
+            Title = "List Refreshed",
+            Content = #options > 0 and #options .. " recordings found" or "No recordings yet",
+            Icon = "refresh-cw",
+            Duration = 2
+        })
     end
 })
 
@@ -888,9 +904,9 @@ MergeSection:Button({
     end
 })
 
--- ==========================================
+
 -- SAVE/LOAD TAB
--- ==========================================
+
 
 local SaveSection = SaveLoadTab:Section({
     Title = "Save Recordings"
@@ -1049,9 +1065,9 @@ InfoSection:Button({
     end
 })
 
--- ==========================================
+
 -- PERFORMANCE TAB
--- ==========================================
+
 
 local GraphicsSection = PerformanceTab:Section({
     Title = "Graphics Optimization"
@@ -1131,14 +1147,14 @@ PerformanceMonitor:Button({
     Callback = function()
         local recordingCount = 0
         local totalFrames = 0
-
+        
         for name, recording in pairs(SavedRecordings) do
             recordingCount = recordingCount + 1
             totalFrames = totalFrames + recording.FrameCount
         end
-
+        
         local memUsage = totalFrames > 5000 and "High" or totalFrames > 2000 and "Medium" or "Low"
-
+        
         local stats = string.format(
             "Performance:\n\nFPS: %d\nRecordings: %d\nTotal Frames: %d\nMemory: %s\n\nRecord FPS: %d\nReplay FPS: %d",
             currentFPS,
@@ -1148,7 +1164,7 @@ PerformanceMonitor:Button({
             targetFPS,
             replayTargetFPS
         )
-
+        
         WindUI:Notify({
             Title = "Performance Info",
             Content = stats,
@@ -1183,9 +1199,9 @@ PerformanceMonitor:Button({
     end
 })
 
--- ==========================================
+
 -- CORE FUNCTIONS
--- ==========================================
+
 
 local function GetAnimationState()
     local state = Humanoid:GetState()
@@ -1197,7 +1213,7 @@ local function GetAnimationState()
         return "Climbing"
     elseif state == Enum.HumanoidStateType.Swimming then
         return "Swimming"
-    elseif state == Enum.HumanoidStateType.Jumping and verticalVelocity > 10 then
+    elseif state == Enum.HumanoidStateType.Jumping and verticalVelocity > 5 then
         return "Jumping"
     elseif state == Enum.HumanoidStateType.Freefall or (verticalVelocity < -10 and state ~= Enum.HumanoidStateType.Running) then
         return "Falling"
@@ -1225,7 +1241,7 @@ local function GetInterpolatedFrame(currentTime, smoothLevel)
     -- Binary search untuk frame (lebih cepat)
     local left, right = 1, #RecordingData
     local frameIndex = 1
-
+    
     while left <= right do
         local mid = math.floor((left + right) / 2)
         if RecordingData[mid].time <= currentTime then
@@ -1249,7 +1265,7 @@ local function GetInterpolatedFrame(currentTime, smoothLevel)
     local t = math.clamp((currentTime - f1.time) / timeDiff, 0, 1)
 
     local result = {}
-
+    
     -- Simple lerp (lebih cepat dari Bezier)
     result.cframe = f1.cframe:Lerp(f2.cframe, t)
     result.velocity = f1.velocity:Lerp(f2.velocity, t)
@@ -1445,7 +1461,7 @@ function StartReplay(recordingName)
     local pausedPosition = nil
     local isInLoopTransition = false
     local loopTransitionStartTime = 0
-
+    
     -- Frame skip untuk performa
     local frameSkip = 0
     local maxFrameSkip = 2
@@ -1486,19 +1502,19 @@ function StartReplay(recordingName)
         -- Loop Transition
         if isInLoopTransition then
             local transitionProgress = (currentTick - loopTransitionStartTime) / (LoopTransitionFrames * recordInterval)
-
+            
             if transitionProgress >= 1 then
                 isInLoopTransition = false
                 startTime = tick()
                 TotalPausedTime = 0
                 currentTime = 0
                 CurrentLoopIteration = CurrentLoopIteration + 1
-
+                
                 if CurrentLoopIteration % 5 == 0 or CurrentLoopIteration == 1 then
                     WindUI:Notify({
                         Title = "Loop " .. CurrentLoopIteration,
-                        Content = MaxLoops == -1 and "Loop: " .. CurrentLoopIteration or
-                            "Loop " .. CurrentLoopIteration .. "/" .. MaxLoops,
+                        Content = MaxLoops == -1 and "Loop: " .. CurrentLoopIteration or 
+                                 "Loop " .. CurrentLoopIteration .. "/" .. MaxLoops,
                         Icon = "repeat",
                         Duration = 1
                     })
@@ -1506,27 +1522,23 @@ function StartReplay(recordingName)
             else
                 local lastRecordFrame = RecordingData[#RecordingData]
                 local firstRecordFrame = RecordingData[1]
-
+                
                 local transitionFrame = {
                     cframe = lastRecordFrame.cframe:Lerp(firstRecordFrame.cframe, transitionProgress),
                     velocity = lastRecordFrame.velocity:Lerp(firstRecordFrame.velocity, transitionProgress),
-                    animationState = transitionProgress < 0.5 and lastRecordFrame.animationState or
-                    firstRecordFrame.animationState,
-                    humanoidState = transitionProgress < 0.5 and lastRecordFrame.humanoidState or
-                    firstRecordFrame.humanoidState,
+                    animationState = transitionProgress < 0.5 and lastRecordFrame.animationState or firstRecordFrame.animationState,
+                    humanoidState = transitionProgress < 0.5 and lastRecordFrame.humanoidState or firstRecordFrame.humanoidState,
                     moveDirection = lastRecordFrame.moveDirection:Lerp(firstRecordFrame.moveDirection, transitionProgress),
-                    moveSpeed = lastRecordFrame.moveSpeed +
-                    (firstRecordFrame.moveSpeed - lastRecordFrame.moveSpeed) * transitionProgress,
-                    verticalVelocity = lastRecordFrame.verticalVelocity +
-                    (firstRecordFrame.verticalVelocity - lastRecordFrame.verticalVelocity) * transitionProgress
+                    moveSpeed = lastRecordFrame.moveSpeed + (firstRecordFrame.moveSpeed - lastRecordFrame.moveSpeed) * transitionProgress,
+                    verticalVelocity = lastRecordFrame.verticalVelocity + (firstRecordFrame.verticalVelocity - lastRecordFrame.verticalVelocity) * transitionProgress
                 }
-
+                
                 RootPart.CFrame = transitionFrame.cframe
                 RootPart.AssemblyLinearVelocity = transitionFrame.velocity
-                SetAnimationState(transitionFrame.animationState, transitionFrame.moveDirection,
-                    transitionFrame.moveSpeed, transitionFrame.humanoidState,
-                    transitionFrame.verticalVelocity)
-
+                SetAnimationState(transitionFrame.animationState, transitionFrame.moveDirection, 
+                                transitionFrame.moveSpeed, transitionFrame.humanoidState, 
+                                transitionFrame.verticalVelocity)
+                
                 return
             end
         end
@@ -1544,7 +1556,7 @@ function StartReplay(recordingName)
                     })
                     return
                 end
-
+                
                 if LoopTransitionEnabled and LoopTransitionFrames > 0 then
                     isInLoopTransition = true
                     loopTransitionStartTime = tick()
@@ -1581,8 +1593,8 @@ function StartReplay(recordingName)
                 RootPart.AssemblyLinearVelocity = frame.velocity
             end
 
-            SetAnimationState(frame.animationState, frame.moveDirection, frame.moveSpeed,
-                frame.humanoidState, frame.verticalVelocity)
+            SetAnimationState(frame.animationState, frame.moveDirection, frame.moveSpeed, 
+                            frame.humanoidState, frame.verticalVelocity)
 
             lastFrame = frame
         end
@@ -1717,7 +1729,7 @@ function MergeRecordingsSequential(recordingNames, newName)
         local frames, duration = select(2, result), select(3, result)
         WindUI:Notify({
             Title = "Merge Successful",
-            Content = string.format("Created '%s'\n%d recordings\n%d frames, %.2fs",
+            Content = string.format("Created '%s'\n%d recordings\n%d frames, %.2fs", 
                 newName, #recordingNames, frames, duration),
             Icon = "check-circle",
             Duration = 5
@@ -1792,13 +1804,10 @@ function MergeRecordingsSmooth(recordingNames, newName)
                             animationState = alpha < 0.5 and lastFrame.animationState or firstNextFrame.animationState,
                             humanoidState = alpha < 0.5 and lastFrame.humanoidState or firstNextFrame.humanoidState,
                             isJumping = alpha < 0.5 and lastFrame.isJumping or firstNextFrame.isJumping,
-                            jumpPower = lastFrame.jumpPower +
-                            (firstNextFrame.jumpPower - lastFrame.jumpPower) * smoothAlpha,
+                            jumpPower = lastFrame.jumpPower + (firstNextFrame.jumpPower - lastFrame.jumpPower) * smoothAlpha,
                             moveDirection = lastFrame.moveDirection:Lerp(firstNextFrame.moveDirection, smoothAlpha),
-                            moveSpeed = lastFrame.moveSpeed +
-                            (firstNextFrame.moveSpeed - lastFrame.moveSpeed) * smoothAlpha,
-                            verticalVelocity = lastFrame.verticalVelocity +
-                            (firstNextFrame.verticalVelocity - lastFrame.verticalVelocity) * smoothAlpha
+                            moveSpeed = lastFrame.moveSpeed + (firstNextFrame.moveSpeed - lastFrame.moveSpeed) * smoothAlpha,
+                            verticalVelocity = lastFrame.verticalVelocity + (firstNextFrame.verticalVelocity - lastFrame.verticalVelocity) * smoothAlpha
                         }
 
                         table.insert(mergedData, transitionFrame)
@@ -1809,8 +1818,7 @@ function MergeRecordingsSmooth(recordingNames, newName)
                 end
             end
 
-            currentTimeOffset = currentTimeOffset + recording.Duration +
-            (isLastRecording and 0 or (transitionFrames * recordInterval))
+            currentTimeOffset = currentTimeOffset + recording.Duration + (isLastRecording and 0 or (transitionFrames * recordInterval))
             totalDuration = totalDuration + recording.Duration
         end
 
@@ -1835,7 +1843,7 @@ function MergeRecordingsSmooth(recordingNames, newName)
         local frames, duration = select(2, result), select(3, result)
         WindUI:Notify({
             Title = "Smooth Merge OK",
-            Content = string.format("'%s' created\n%d recordings\n%d frames",
+            Content = string.format("'%s' created\n%d recordings\n%d frames", 
                 newName, #recordingNames, frames),
             Icon = "check-circle",
             Duration = 5
@@ -2430,32 +2438,32 @@ end
 
 function CleanupOldRecordings(maxRecordings)
     maxRecordings = maxRecordings or 10
-
+    
     local count = 0
     for _ in pairs(SavedRecordings) do
         count = count + 1
     end
-
+    
     if count > maxRecordings then
         local oldest = nil
         local oldestTime = math.huge
-
+        
         for name, recording in pairs(SavedRecordings) do
             local time = recording.CreatedAt or os.time()
             if type(time) == "string" then
                 time = 0
             end
-
+            
             if time < oldestTime then
                 oldestTime = time
                 oldest = name
             end
         end
-
+        
         if oldest then
             SavedRecordings[oldest] = nil
             UpdateRecordingDropdown()
-
+            
             WindUI:Notify({
                 Title = "Memory Cleanup",
                 Content = "Removed: " .. oldest,
@@ -2505,9 +2513,9 @@ function DisableGodMode()
     end
 end
 
--- ==========================================
+
 -- CONNECTIONS & LOOPS
--- ==========================================
+
 
 UserInputService.JumpRequest:Connect(function()
     if AirJumpEnabled and Humanoid then
@@ -2551,7 +2559,7 @@ end
 
 RunService.Heartbeat:Connect(function()
     ProtectSpeed()
-
+    
     if GodModeEnabled then
         if Humanoid and Humanoid.Health ~= math.huge then
             EnableGodMode()
@@ -2585,9 +2593,7 @@ if Humanoid then
     Humanoid.UseJumpPower = true
 end
 
--- ==========================================
 -- NOTIFICATION
--- ==========================================
 
 WindUI:Notify({
     Title = "Script Loaded!",
