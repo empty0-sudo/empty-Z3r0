@@ -1,3 +1,3 @@
-# empty z3r0
-Script Roblox Universal 
+,.# empty z3r0
+Script For fun
 
